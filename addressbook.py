@@ -1,4 +1,4 @@
-__author__ = 'adam'
+__author__ = 'Adam and Billy'
 
 print "Hey there, this is an address book!"
 print "What do you want to do?"
@@ -37,6 +37,15 @@ def addContact(currentKey):
     currentKey = currentKey + 1
     return currentKey
 
+def deleteContact(currentKey):
+    firstNameDict.pop(currentKey)
+    lastNameDict.pop(currentKey)
+    phoneDict.pop(currentKey)
+    phone2Dict.pop(currentKey)
+    emailDict.pop(currentKey)
+    addressDict.pop(currentKey)
+    keyList.remove(currentKey)
+
 def editContact(currentKey):
     firstName = ""
     lastName = ""
@@ -63,11 +72,16 @@ def editContact(currentKey):
     addressDict[currentKey] = address
     phone2Dict[currentKey] = phone2
 
-
+"""  #This is for testing stuff!!!
+showContacts()
+currentKey = addContact(currentKey)
 currentKey = addContact(currentKey)
 showContacts()
-
-
+editContact(1)
+showContacts()
+deleteContact(1)
+showContacts()
+"""
 
 
 
