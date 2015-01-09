@@ -3,10 +3,7 @@ __author__ = 'Adam and Billy'
 
 
 
-# Here we are initializing the storage dictionaries, the key list, and the global
-# variable currentKey.  currentKey is iterated every time the program creates a new entry
-# in the storage dictionaries, so that way we always know that the key is unique.
-# When these entries are created, the keys are stored into the list keyList.
+# Here we are initializing the storage dictionaries, and the key list.
 first_name_dict = {}
 last_name_dict = {}
 phone_dict = {}
@@ -14,7 +11,6 @@ phone_2_dict = {}
 email_dict = {}
 address_dict = {}
 key_list = []
-current_key = 0
 
 
 # I added an optional argument to this method now, so if you call the method and pass it a list (of keys)
@@ -129,7 +125,61 @@ def search():
             else:
 			    success = 1                      # Otherwise 1 is assigned to success and this ends the search loop.
 			
-	
+# This method is used to take one line, read from the storage file, and parse it into a list
+# of values for the dictionary.  It uses multiple try blocks to insure that the information is valid,
+# and will not write to the dictionaries if it is not.
+def read_line_to_dicts(line,key_so_far):
+    items = line.split('|')
+    print "Opening line..."
+    try:                 # Making sure the key is a valid integer.
+        key = int(items[0])
+    except:              # If not, return the key given and report the error.
+        print "Not a valid line: No valid Key. Nothing imported."
+        return key_so_far
+    print "Valid key number %d" % key
+    try:                        # Making sure the item list is at least 6 long (contains all but a phone2)
+        address_dict[key] = items[5].rstrip('\n')
+        first_name_dict[key] = items[1]
+        last_name_dict[key] = items[2]
+        phone_dict[key] = items[3]
+        email_dict[key] = items[4]
+    except:                      # If the line doesn't have enough parameters, report error. Nothing will be imported.
+        print "Not a valid line: Not enough parameters/Not formatted correctly. Nothing imported."
+        return key_so_far
+    try:                         # If the last entry (for phone2) is empty....
+        phone_2_dict[key] = items[6].rstrip('\n')
+    except:                      # Don't worry about it, and fill with a blank. Keep going.
+        phone_2_dict[key] = ''
+        pass
+    print "Line is a valid entry! Entry %d successfully imported" % key
+    key_list.append(key)         # Add the key to the keylist
+    new_current_key = key + 1    # Increment the key to make sure it stays unique.
+    return new_current_key
+
+# This method tries to open the given file, manages all exceptions, and parses
+# the file into lines.  It sends each line to the read_line_to_dicts method.  It
+# closes the file when it is done, and it keeps track of the next usable key, by
+# setting it to 1 plus the highest key read from a file. It returns this key when it
+# is done to be stored into the current_key variable.
+def read_lines_from_file(filename):
+    highest_key = 0
+    try:
+        file_to_open = open(filename, 'r')
+        print "File %s successfully opened!" % filename
+    except:
+        print "No valid file! Nothing imported. Sad day..."
+        print "The current usable key after importing is %d." % highest_key
+        wait = raw_input("Press enter to continue.")
+        return highest_key
+    for l in file_to_open:
+        highest_key = read_line_to_dicts(l, highest_key)
+    file_to_open.close()
+    print "The current usable key after importing is %d." % highest_key
+    wait = raw_input("Press enter to continue.")
+    return highest_key
+
+current_key = read_lines_from_file('book_file')
+print "\nprint Hey there, this is an address book!\n\n"
 
 # This loops forever until a break is encountered (meaning the user has chosen to quit with option 5)
 # This way the user will always be presented with the menu after the program is done completing a request.
@@ -137,7 +187,6 @@ while True:
     # This is for interfacing with the hooman allowing them to choose which of the program's
     # features they would like to use.  A menu is printed and the user's choice is stored into
     # the variable choice, presumably an integer, though no error checking is done.
-    print "Hey there, this is an address book!"
     print "What do you want to do?"
     print "1 = Show contacts"
     print "2 = Add Contact"
