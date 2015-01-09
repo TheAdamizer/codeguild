@@ -1,8 +1,6 @@
 __author__ = 'Adam and Billy'
 
 
-
-
 # Here we are initializing the storage dictionaries, and the key list.
 first_name_dict = {}
 last_name_dict = {}
@@ -16,8 +14,9 @@ key_list = []
 # I added an optional argument to this method now, so if you call the method and pass it a list (of keys)
 # it will now print the contacts with keys in that list.  Otherwise, it will print all the entries.
 def show_contacts(list = key_list):
-	for i in list:
-		show_contact(i)
+    for i in list:
+        show_contact(i)
+
 
 # This method actually prints the contents of a contact entry.
 def show_contact(i):
@@ -30,6 +29,7 @@ def show_contact(i):
     print (address_dict[i])
     print "--------------------"
     print ""
+
 
 # This method is called when the user wants to create a new entry.  It needs
 # to be passed a key at which the new entry needs to be created.  We will
@@ -56,6 +56,7 @@ def delete_contact(current_key):
     address_dict.pop(current_key)
     key_list.remove(current_key)
     print "------------------------------------------------------"
+
 
 # This method is used for editing the data in the storage dictionaries. It needs
 # to be passed the key at which the entry is being edited/created (this method works for
@@ -99,6 +100,7 @@ def edit_contact(key_to_edit):
 
     print "---------------------------------"
 
+
 # This method, when given a string, searches the entries in all the databases for that string.
 # It will return a list of all of the keys for entries that contain that string.
 def phrase_search(phrase):
@@ -107,6 +109,7 @@ def phrase_search(phrase):
         if first_name_dict[i].__contains__(phrase) or last_name_dict[i].__contains__(phrase) or phone_dict[i].__contains__(phrase) or email_dict[i].__contains__(phrase) or address_dict[i].__contains__(phrase) or phone_2_dict[i].__contains__(phrase):
             search_results.append(i)
     return search_results
+
 
 # This method manages the user's search. It initially asks for a phrase and keeps searching
 # until the search yields results or the user decides to stop trying.
@@ -123,8 +126,9 @@ def search():
             if choice == 'y':                    # If user decides to search again, new input is taken.
                 search_phrase = raw_input("Enter a phrase to search. ")
             else:
-			    success = 1                      # Otherwise 1 is assigned to success and this ends the search loop.
-			
+                success = 1                      # Otherwise 1 is assigned to success and this ends the search loop.
+
+
 # This method is used to take one line, read from the storage file, and parse it into a list
 # of values for the dictionary.  It uses multiple try blocks to insure that the information is valid,
 # and will not write to the dictionaries if it is not.
@@ -156,6 +160,7 @@ def read_line_to_dicts(line,key_so_far):
     new_current_key = key + 1    # Increment the key to make sure it stays unique.
     return new_current_key
 
+
 # This method tries to open the given file, manages all exceptions, and parses
 # the file into lines.  It sends each line to the read_line_to_dicts method.  It
 # closes the file when it is done, and it keeps track of the next usable key, by
@@ -178,8 +183,10 @@ def read_lines_from_file(filename):
     wait = raw_input("Press enter to continue.")
     return highest_key
 
+
 current_key = read_lines_from_file('book_file')
 print "\nprint Hey there, this is an address book!\n\n"
+
 
 # This loops forever until a break is encountered (meaning the user has chosen to quit with option 5)
 # This way the user will always be presented with the menu after the program is done completing a request.
