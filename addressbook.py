@@ -16,20 +16,24 @@ address_dict = {}
 key_list = []
 current_key = 0
 
-# This method is called whenever the user wants to view the contents of the address
-# book.  It iterates through every entry in the list keyList.  It then prints the
-# corresponding value for the key in every one of the storage dictionaries.
-def show_contacts():
-    for i in key_list:
-        print "This is key: %d" % i
-        print (first_name_dict[i])
-        print (last_name_dict[i])
-        print (phone_dict[i])
-        print (phone_2_dict[i])
-        print (email_dict[i])
-        print (address_dict[i])
-        print "--------------------"
-        print ""
+
+# I added an optional argument to this method now, so if you call the method and pass it a list (of keys)
+# it will now print the contacts with keys in that list.  Otherwise, it will print all the entries.
+def show_contacts(list = key_list):
+	for i in list:
+		show_contact(i)
+
+# This method actually prints the contents of a contact entry.
+def show_contact(i):
+    print "This is key: %d" % i
+    print (first_name_dict[i])
+    print (last_name_dict[i])
+    print (phone_dict[i])
+    print (phone_2_dict[i])
+    print (email_dict[i])
+    print (address_dict[i])
+    print "--------------------"
+    print ""
 
 # This method is called when the user wants to create a new entry.  It needs
 # to be passed a key at which the new entry needs to be created.  We will
@@ -41,6 +45,8 @@ def show_contacts():
 def add_contact(current_key):
     edit_contact(current_key)
     key_list.append(current_key)
+
+
 # This method is used to completely remove an entry from the the address book.
 # This is done by, first, popping the entries out of every storage dictionary,
 # by passing the key for the entry we'd like to remove.  Then, the key is removed from
@@ -82,7 +88,7 @@ def edit_contact(key_to_edit):
 
     # Notice phone2 is not contained within the while loop, so the program will accept
     # a blank value.
-    phone2 = raw_input("What is the second phone number of your contact?")
+    phone2 = raw_input("What is the second phone number of your contact? ")
     while email == "":
         email = raw_input("What is the email of your contact? ")
     while address == "":
@@ -97,6 +103,34 @@ def edit_contact(key_to_edit):
 
     print "---------------------------------"
 
+# This method, when given a string, searches the entries in all the databases for that string.
+# It will return a list of all of the keys for entries that contain that string.
+def phrase_search(phrase):
+    search_results = []
+    for i in key_list:
+        if first_name_dict[i].__contains__(phrase) or last_name_dict[i].__contains__(phrase) or phone_dict[i].__contains__(phrase) or email_dict[i].__contains__(phrase) or address_dict[i].__contains__(phrase) or phone_2_dict[i].__contains__(phrase):
+            search_results.append(i)
+    return search_results
+
+# This method manages the user's search. It initially asks for a phrase and keeps searching
+# until the search yields results or the user decides to stop trying.
+def search():
+    search_phrase = raw_input("Enter a phrase to search. ")
+    success = 0                                  # This variable is used to keep track of when the program should stop trying to search.
+    while success == 0:                          # As long as no success is seen, the search continues...
+        results = phrase_search(search_phrase)   # Calling the phrase_search method defined above.
+        if results:
+            show_contacts(results)
+            success = 1
+        else:
+            choice = raw_input("No results... enter y to search again, and anything else otherwise. ")
+            if choice == 'y':                    # If user decides to search again, new input is taken.
+                search_phrase = raw_input("Enter a phrase to search. ")
+            else:
+			    success = 1                      # Otherwise 1 is assigned to success and this ends the search loop.
+			
+	
+
 # This loops forever until a break is encountered (meaning the user has chosen to quit with option 5)
 # This way the user will always be presented with the menu after the program is done completing a request.
 while True:
@@ -109,7 +143,8 @@ while True:
     print "2 = Add Contact"
     print "3 = Edit Contact"
     print "4 = Delete Contact"
-    print "5 = quit"
+    print "5 = Search for contact"
+    print "6 = Quit"
     print "--------------------------------"
     choice = raw_input("Pick one, dummy!  ")
     print "--------------------------------"
@@ -145,6 +180,8 @@ while True:
 				print "This isn't a valid key, m8.  Please try again."
         
     elif choice == '5':
+	    search()
+    elif choice == '6':
         break
     else:
         print "You messed, dude.  Try again (at life).\n"
