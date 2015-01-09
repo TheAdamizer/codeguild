@@ -184,6 +184,23 @@ def read_lines_from_file(filename):
     return highest_key
 
 
+# This function reads through the entire key list and writes all of the values associated
+# with that key into a line of a file that is defined in the argument.
+# The values are seperated by a | character, and they are put in in an order that allows
+# us to reliably retrieve them the next time the program is run.
+def write_dicts_to_file(filename):
+    file_to_write = open(filename, 'w')
+    for key in key_list:
+        file_to_write.write(str(key) + '|')
+        file_to_write.write(first_name_dict[key] + '|')
+        file_to_write.write(last_name_dict[key] + '|')
+        file_to_write.write(phone_dict[key] + '|')
+        file_to_write.write(email_dict[key] + '|')
+        file_to_write.write(address_dict[key] + '|')
+        file_to_write.write(phone_2_dict[key] + '|\n')
+    file_to_write.close()
+
+
 current_key = read_lines_from_file('book_file')
 print "\nprint Hey there, this is an address book!\n\n"
 
@@ -238,6 +255,7 @@ while True:
     elif choice == '5':
 	    search()
     elif choice == '6':
+        write_dicts_to_file('book_file')
         break
     else:
         print "You messed, dude.  Try again (at life).\n"
