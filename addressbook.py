@@ -7,27 +7,27 @@ __author__ = 'Adam and Billy'
 # variable currentKey.  currentKey is iterated every time the program creates a new entry
 # in the storage dictionaries, so that way we always know that the key is unique.
 # When these entries are created, the keys are stored into the list keyList.
-firstNameDict = {}
-lastNameDict = {}
-phoneDict = {}
-phone2Dict = {}
-emailDict = {}
-addressDict = {}
-keyList = []
-currentKey = 0
+first_name_dict = {}
+last_name_dict = {}
+phone_dict = {}
+phone_2_dict = {}
+email_dict = {}
+address_dict = {}
+key_list = []
+current_key = 0
 
 # This method is called whenever the user wants to view the contents of the address
 # book.  It iterates through every entry in the list keyList.  It then prints the
 # corresponding value for the key in every one of the storage dictionaries.
-def showContacts():
-    for i in keyList:
+def show_contacts():
+    for i in key_list:
         print "This is key: %d" % i
-        print (firstNameDict[i])
-        print (lastNameDict[i])
-        print (phoneDict[i])
-        print (phone2Dict[i])
-        print (emailDict[i])
-        print (addressDict[i])
+        print (first_name_dict[i])
+        print (last_name_dict[i])
+        print (phone_dict[i])
+        print (phone_2_dict[i])
+        print (email_dict[i])
+        print (address_dict[i])
         print "--------------------"
         print ""
 
@@ -38,21 +38,21 @@ def showContacts():
 # and is used to let the user modify the entry.  The rest of the addContact
 # method simply adds the new key to the keyList, iterates the currentKey
 # (so the key stays unique), and returns the currentKey.
-def addContact(currentKey):
-    editContact(currentKey)
-    keyList.append(currentKey)
+def add_contact(current_key):
+    edit_contact(current_key)
+    key_list.append(current_key)
 # This method is used to completely remove an entry from the the address book.
 # This is done by, first, popping the entries out of every storage dictionary,
 # by passing the key for the entry we'd like to remove.  Then, the key is removed from
 # the keyList.
-def deleteContact(currentKey):
-    firstNameDict.pop(currentKey)
-    lastNameDict.pop(currentKey)
-    phoneDict.pop(currentKey)
-    phone2Dict.pop(currentKey)
-    emailDict.pop(currentKey)
-    addressDict.pop(currentKey)
-    keyList.remove(currentKey)
+def delete_contact(current_key):
+    first_name_dict.pop(current_key)
+    last_name_dict.pop(current_key)
+    phone_dict.pop(current_key)
+    phone_2_dict.pop(current_key)
+    email_dict.pop(current_key)
+    address_dict.pop(current_key)
+    key_list.remove(current_key)
     print "------------------------------------------------------"
 
 # This method is used for editing the data in the storage dictionaries. It needs
@@ -66,38 +66,39 @@ def deleteContact(currentKey):
 # storage dictionaries, using the key that was passed into the method. This method doesn't
 # need to edit the keyList, because it only enters into the dictionaries, which could be used
 # for editing the entry in place as well.
-def editContact(currentKey):
-    firstName = ""
-    lastName = ""
+def edit_contact(key_to_edit):
+    first_name = ""
+    last_name = ""
     phone = ""
     phone2 = ""
     email = ""
     address = ""
-    while firstName == "":
-        firstName = raw_input("Whats the first name of your contact? ")
-    while lastName == "":
-        lastName = raw_input("Whats the last name of your contact? ")
+    while first_name == "":
+        first_name = raw_input("What is the first name of your contact? ")
+    while last_name == "":
+        last_name = raw_input("What is the last name of your contact? ")
     while phone == "":
-        phone = raw_input("Whats the phone of your contact? ")
+        phone = raw_input("What is the phone of your contact? ")
 
     # Notice phone2 is not contained within the while loop, so the program will accept
     # a blank value.
     phone2 = raw_input("What is the second phone number of your contact?")
     while email == "":
-        email = raw_input("Whats the email of your contact? ")
+        email = raw_input("What is the email of your contact? ")
     while address == "":
-        address = raw_input("Whats the address of your contact? ")
+        address = raw_input("What is the address of your contact? ")
 
-    firstNameDict[currentKey] = firstName
-    lastNameDict[currentKey] = lastName
-    phoneDict[currentKey] = phone
-    emailDict[currentKey] = email
-    addressDict[currentKey] = address
-    phone2Dict[currentKey] = phone2
+    first_name_dict[key_to_edit] = first_name
+    last_name_dict[key_to_edit] = last_name
+    phone_dict[key_to_edit] = phone
+    email_dict[key_to_edit] = email
+    address_dict[key_to_edit] = address
+    phone_2_dict[key_to_edit] = phone2
 
     print "---------------------------------"
 
 # This loops forever until a break is encountered (meaning the user has chosen to quit with option 5)
+# This way the user will always be presented with the menu after the program is done completing a request.
 while True:
     # This is for interfacing with the hooman allowing them to choose which of the program's
     # features they would like to use.  A menu is printed and the user's choice is stored into
@@ -116,24 +117,37 @@ while True:
 
     # This is the decision tree we use to comply with the user's wishes.  The user has chosen what the
     # would like to do, so we uses a series of ifs and elifs to perform those commands that the user has
-    # chosen.  If the user chooses to add a contact, the program incrememnts the global variable currentKey,
+    # chosen.  If the user chooses to add a contact, the program increments the global variable currentKey,
     # to make sure the currentKey stays unique no matter what.  If the user doesn't choose a given choice,
     # (not 1 through 5), then the program taunts them and repeats the menu.
     if choice == '1':
-        showContacts()
+        show_contacts()
     elif choice == '2':
-        addContact(currentKey)
-        currentKey = currentKey + 1
+        add_contact(current_key)
+        current_key = current_key + 1
     elif choice == '3':
-        keyToEdit = int(raw_input("Which key do you want to edit?  "))
-        editContact(keyToEdit)
+		success = 0			 # Here I am making a sub-loop that continues asking the user for a key to edit
+		while success == 0 : # Until the user gives a valid key that is used in the first_name_dict
+			key_to_edit = int(raw_input("Which key do you want to edit?  "))
+			if first_name_dict.has_key(key_to_edit):
+				edit_contact(key_to_edit)
+				success = 1
+			else:			 # Otherwise it prints an error and repeats the loop.
+				print "This isn't a valid key, m8.  Please try again."
     elif choice == '4':
-        keyToDelete = int(raw_input("Which key do you want to delete?  "))
-        deleteContact(keyToDelete)
+		success = 0
+		while success == 0:	 # Using the same technique as above
+			key_to_delete = int(raw_input("Which key do you want to delete?  "))
+			if first_name_dict.has_key(key_to_delete):
+				delete_contact(key_to_delete)
+				success = 1
+			else:
+				print "This isn't a valid key, m8.  Please try again."
+        
     elif choice == '5':
         break
     else:
-        print "You messed, dude.  Try again (at life)."
+        print "You messed, dude.  Try again (at life).\n"
 
 
 
@@ -143,14 +157,14 @@ while True:
 # The program currently lacks any way for the user to choose how it functions, so this bit
 # can be uncommented to ensure that the methods are working so far.
 """  #This is for testing stuff!!!
-showContacts()
-currentKey = addContact(currentKey)
-currentKey = addContact(currentKey)
-showContacts()
-editContact(1)
-showContacts()
-deleteContact(1)
-showContacts()
+show_contacts()
+current_key = add_contact(currentKey)
+current_key = add_contact(currentKey)
+show_contacts()
+edit_contact(1)
+show_contacts()
+delete_contact(1)
+show_contacts()
 """
 
 
