@@ -13,8 +13,8 @@ key_list = []
 
 # I added an optional argument to this method now, so if you call the method and pass it a list (of keys)
 # it will now print the contacts with keys in that list.  Otherwise, it will print all the entries.
-def show_contacts(list = key_list):
-    for i in list:
+def show_contacts(show_list=key_list):
+    for i in show_list:
         show_contact(i)
 
 
@@ -38,23 +38,23 @@ def show_contact(i):
 # and is used to let the user modify the entry.  The rest of the addContact
 # method simply adds the new key to the keyList, iterates the currentKey
 # (so the key stays unique), and returns the currentKey.
-def add_contact(current_key):
-    edit_contact(current_key)
-    key_list.append(current_key)
+def add_contact(add_key):
+    edit_contact(add_key)
+    key_list.append(add_key)
 
 
 # This method is used to completely remove an entry from the the address book.
 # This is done by, first, popping the entries out of every storage dictionary,
 # by passing the key for the entry we'd like to remove.  Then, the key is removed from
 # the keyList.
-def delete_contact(current_key):
-    first_name_dict.pop(current_key)
-    last_name_dict.pop(current_key)
-    phone_dict.pop(current_key)
-    phone_2_dict.pop(current_key)
-    email_dict.pop(current_key)
-    address_dict.pop(current_key)
-    key_list.remove(current_key)
+def delete_contact(delete_key):
+    first_name_dict.pop(delete_key)
+    last_name_dict.pop(delete_key)
+    phone_dict.pop(delete_key)
+    phone_2_dict.pop(delete_key)
+    email_dict.pop(delete_key)
+    address_dict.pop(delete_key)
+    key_list.remove(delete_key)
     print "------------------------------------------------------"
 
 
@@ -69,11 +69,10 @@ def delete_contact(current_key):
 # storage dictionaries, using the key that was passed into the method. This method doesn't
 # need to edit the keyList, because it only enters into the dictionaries, which could be used
 # for editing the entry in place as well.
-def edit_contact(key_to_edit):
+def edit_contact(edit_key):
     first_name = ""
     last_name = ""
     phone = ""
-    phone2 = ""
     email = ""
     address = ""
     while first_name == "":
@@ -91,12 +90,12 @@ def edit_contact(key_to_edit):
     while address == "":
         address = raw_input("What is the address of your contact? ")
 
-    first_name_dict[key_to_edit] = first_name
-    last_name_dict[key_to_edit] = last_name
-    phone_dict[key_to_edit] = phone
-    email_dict[key_to_edit] = email
-    address_dict[key_to_edit] = address
-    phone_2_dict[key_to_edit] = phone2
+    first_name_dict[edit_key] = first_name
+    last_name_dict[edit_key] = last_name
+    phone_dict[edit_key] = phone
+    email_dict[edit_key] = email
+    address_dict[edit_key] = address
+    phone_2_dict[edit_key] = phone2
 
     print "---------------------------------"
 
@@ -106,7 +105,9 @@ def edit_contact(key_to_edit):
 def phrase_search(phrase):
     search_results = []
     for i in key_list:
-        if first_name_dict[i].__contains__(phrase) or last_name_dict[i].__contains__(phrase) or phone_dict[i].__contains__(phrase) or email_dict[i].__contains__(phrase) or address_dict[i].__contains__(phrase) or phone_2_dict[i].__contains__(phrase):
+        if first_name_dict[i].__contains__(phrase) or last_name_dict[i].__contains__(phrase) or \
+                phone_dict[i].__contains__(phrase) or email_dict[i].__contains__(phrase) or \
+                address_dict[i].__contains__(phrase) or phone_2_dict[i].__contains__(phrase):
             search_results.append(i)
     return search_results
 
@@ -115,24 +116,24 @@ def phrase_search(phrase):
 # until the search yields results or the user decides to stop trying.
 def search():
     search_phrase = raw_input("Enter a phrase to search. ")
-    success = 0                                  # This variable is used to keep track of when the program should stop trying to search.
-    while success == 0:                          # As long as no success is seen, the search continues...
+    search_success = 0          # This variable is used to keep track of when the program should stop trying to search.
+    while search_success == 0:                          # As long as no success is seen, the search continues...
         results = phrase_search(search_phrase)   # Calling the phrase_search method defined above.
         if results:
             show_contacts(results)
-            success = 1
+            search_success = 1
         else:
-            choice = raw_input("No results... enter y to search again, and anything else otherwise. ")
-            if choice == 'y':                    # If user decides to search again, new input is taken.
+            user_choice = raw_input("No results... enter y to search again, and anything else otherwise. ")
+            if user_choice == 'y':                    # If user decides to search again, new input is taken.
                 search_phrase = raw_input("Enter a phrase to search. ")
             else:
-                success = 1                      # Otherwise 1 is assigned to success and this ends the search loop.
+                search_success = 1    # Otherwise 1 is assigned to success and this ends the search loop.
 
 
 # This method is used to take one line, read from the storage file, and parse it into a list
 # of values for the dictionary.  It uses multiple try blocks to insure that the information is valid,
 # and will not write to the dictionaries if it is not.
-def read_line_to_dicts(line,key_so_far):
+def read_line_to_dicts(line, key_so_far):
     items = line.split('|')
     print "Opening line..."
     try:                 # Making sure the key is a valid integer.
@@ -156,7 +157,7 @@ def read_line_to_dicts(line,key_so_far):
         phone_2_dict[key] = ''
         pass
     print "Line is a valid entry! Entry %d successfully imported" % key
-    key_list.append(key)         # Add the key to the keylist
+    key_list.append(key)         # Add the key to the key_list
     new_current_key = key + 1    # Increment the key to make sure it stays unique.
     return new_current_key
 
@@ -166,6 +167,7 @@ def read_line_to_dicts(line,key_so_far):
 # closes the file when it is done, and it keeps track of the next usable key, by
 # setting it to 1 plus the highest key read from a file. It returns this key when it
 # is done to be stored into the current_key variable.
+# noinspection PyUnusedLocal
 def read_lines_from_file(filename):
     highest_key = 0
     try:
@@ -186,7 +188,7 @@ def read_lines_from_file(filename):
 
 # This function reads through the entire key list and writes all of the values associated
 # with that key into a line of a file that is defined in the argument.
-# The values are seperated by a | character, and they are put in in an order that allows
+# The values are separated by a | character, and they are put in in an order that allows
 # us to reliably retrieve them the next time the program is run.
 def write_dicts_to_file(filename):
     file_to_write = open(filename, 'w')
@@ -232,36 +234,33 @@ while True:
         show_contacts()
     elif choice == '2':
         add_contact(current_key)
-        current_key = current_key + 1
+        current_key += 1
     elif choice == '3':
-		success = 0			 # Here I am making a sub-loop that continues asking the user for a key to edit
-		while success == 0 : # Until the user gives a valid key that is used in the first_name_dict
-			key_to_edit = int(raw_input("Which key do you want to edit?  "))
-			if first_name_dict.has_key(key_to_edit):
-				edit_contact(key_to_edit)
-				success = 1
-			else:			 # Otherwise it prints an error and repeats the loop.
-				print "This isn't a valid key, m8.  Please try again."
+        success = 0			 # Here I am making a sub-loop that continues asking the user for a key to edit
+        while success == 0:  # Until the user gives a valid key that is used in the first_name_dict
+            key_to_edit = int(raw_input("Which key do you want to edit?  "))
+            if key_to_edit in first_name_dict:
+                edit_contact(key_to_edit)
+                success = 1
+            else:			 # Otherwise it prints an error and repeats the loop.
+                print "This isn't a valid key, m8.  Please try again."
     elif choice == '4':
-		success = 0
-		while success == 0:	 # Using the same technique as above
-			key_to_delete = int(raw_input("Which key do you want to delete?  "))
-			if first_name_dict.has_key(key_to_delete):
-				delete_contact(key_to_delete)
-				success = 1
-			else:
-				print "This isn't a valid key, m8.  Please try again."
+        success = 0
+        while success == 0:	 # Using the same technique as above
+            key_to_delete = int(raw_input("Which key do you want to delete?  "))
+            if key_to_delete in first_name_dict:
+                delete_contact(key_to_delete)
+                success = 1
+            else:
+                print "This isn't a valid key, m8.  Please try again."
         
     elif choice == '5':
-	    search()
-    elif choice == '6':
+        search()
+    elif choice == '6':      # We need to make sure the file saves when the user exits the program.
         write_dicts_to_file('book_file')
         break
     else:
         print "You messed, dude.  Try again (at life).\n"
-
-
-
 
 
 # This is commented out code that is used for testing the functionality of the program.
@@ -277,7 +276,6 @@ show_contacts()
 delete_contact(1)
 show_contacts()
 """
-
 
 
 # This is printing the choice the user made at the start of the program, though we're
