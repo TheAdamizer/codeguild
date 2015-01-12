@@ -1,5 +1,7 @@
 __author__ = 'Adam and Billy'
 
+import sys
+
 
 # Here we are initializing the storage dictionaries, and the key list.
 first_name_dict = {}
@@ -136,11 +138,14 @@ def search():
 def read_line_to_dicts(line, key_so_far):
     items = line.split('|')
     print "Opening line..."
-    try:                 # Making sure the key is a valid integer.
+    try:                        # Making sure the key is a valid integer.
         key = int(items[0])
-    except:              # If not, return the key given and report the error.
-        print "Not a valid line: No valid Key. Nothing imported."
+    except ValueError:          # If not, return the key given and report the error.
+        print "Not valid Key. Nothing imported."
         return key_so_far
+    except:
+        print "Unexpected Error: ", sys.exc_info()[0]
+        raise
     print "Valid key number %d" % key
     try:                        # Making sure the item list is at least 6 long (contains all but a phone2)
         address_dict[key] = items[5].rstrip('\n')
@@ -148,17 +153,20 @@ def read_line_to_dicts(line, key_so_far):
         last_name_dict[key] = items[2]
         phone_dict[key] = items[3]
         email_dict[key] = items[4]
-    except:                      # If the line doesn't have enough parameters, report error. Nothing will be imported.
+    except IndexError:          # If the line doesn't have enough parameters, report error. Nothing will be imported.
         print "Not a valid line: Not enough parameters/Not formatted correctly. Nothing imported."
         return key_so_far
-    try:                         # If the last entry (for phone2) is empty....
+    try:                        # If the last entry (for phone2) is empty....
         phone_2_dict[key] = items[6].rstrip('\n')
-    except:                      # Don't worry about it, and fill with a blank. Keep going.
+    except IndexError:          # Don't worry about it, and fill with a blank. Keep going.
         phone_2_dict[key] = ''
         pass
+    except:
+        print "Unexpected Error: ", sys.exc_info()[0]
+        raise
     print "Line is a valid entry! Entry %d successfully imported" % key
-    key_list.append(key)         # Add the key to the key_list
-    new_current_key = key + 1    # Increment the key to make sure it stays unique.
+    key_list.append(key)        # Add the key to the key_list
+    new_current_key = key + 1   # Increment the key to make sure it stays unique.
     return new_current_key
 
 
@@ -173,11 +181,14 @@ def read_lines_from_file(filename):
     try:
         file_to_open = open(filename, 'r')
         print "File %s successfully opened!" % filename
-    except:
+    except IOError:
         print "No valid file! Nothing imported. Sad day..."
         print "The current usable key after importing is %d." % highest_key
         wait = raw_input("Press enter to continue.")
         return highest_key
+    except:
+        print "Unexpected Error: ", sys.exc_info()[0]
+        raise
     for l in file_to_open:
         highest_key = read_line_to_dicts(l, highest_key)
     file_to_open.close()
@@ -207,7 +218,7 @@ current_key = read_lines_from_file('book_file')
 print "\nprint Hey there, this is an address book!\n\n"
 
 
-# This loops forever until a break is encountered (meaning the user has chosen to quit with option 5)
+# This loops forever until a break is encountered (meaning the user has chosen to quit with option 6)
 # This way the user will always be presented with the menu after the program is done completing a request.
 while True:
     # This is for interfacing with the hooman allowing them to choose which of the program's
