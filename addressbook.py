@@ -3,14 +3,68 @@ __author__ = 'Adam and Billy'
 import sys
 
 
-# Here we are initializing the storage dictionaries, and the key list.
-first_name_dict = {}
-last_name_dict = {}
-phone_dict = {}
-phone_2_dict = {}
-email_dict = {}
-address_dict = {}
-key_list = []
+'''
+The structure of the address book is as follows:
+Each of the parameter dictionaries (ex: first_name_dict, email_dict, etc) stores
+one entry detail on a contact.  The keys in every one of these dictionaries
+is the shared key for a unique contact entry, meaning that every entry into the
+contact book gets a unique key, and that key can be used to access any of the
+entry details in the parameter dictionaries.
+
+Every one of these dictionaries is stored into a parent list.  There
+are 3 entries into this list, and order is important because the first two elements of the list
+determine the function of that entry in the address book.  The first index of the list is a
+'binary' value indicating whether the program should let that entry be blank.  Normally, the
+only entry that is allowed blank is "Phone 2", though user created entries can either be
+allowed blank or not.  Entries that can be blank will be indicated with a 1 value.
+The second entry, another binary value, determines whether the entry is user-created or not.  If it
+is user created, the value will be 1.
+
+These parameter lists are stored into a dictionary called called book_dict.
+In this dictionary, the key for every parameter list is a textual
+representation of that parameter list's contents.  For example,the list containing first_name_dict, as
+it is originally instantiated, will be put in the the book_dict under the key 'First Name',
+last_name_dict's parameter list will be stored as 'Last Name', email_dict's parameter list as
+'Email Address', and so on.
+
+In this new dictionary, book_dict, the entire address book has been packaged into one object
+that can be passed around to different functions and accessed directly.  One would note that
+creating dictionaries with the names first_name_dict, phone_dict, etc. is completely unnecessary,
+and that I would only need one line to create the book_dict with its keyed parameter lists.
+This project is being created as an educational experience, and as such the creation of the book_dict
+object has been expanded to provide some insight into it's structure and how it will be used by methods
+later on in the address book program.
+'''
+
+
+def create_book():
+    first_name_dict = {}
+    last_name_dict = {}
+    phone_dict = {}
+    phone_2_dict = {}
+    email_dict = {}
+    address_dict = {}
+    book_dict = {'First Name': [0, 0, first_name_dict],
+                 'Last Name': [0, 0, last_name_dict],
+                 'Phone Number': [0, 0, phone_dict],
+                 'Phone 2': [1, 0, phone_2_dict],
+                 'Email Address': [0, 0, email_dict],
+                 'Physical Address': [0, 0, address_dict]}
+    return book_dict
+
+
+'''
+When adding a new entry into the list, the program needs a way to determine the next available key
+to use for an entry.  Since the program supports deleting entries, those keys open up, and for the sake of
+tidiness, this method will prefer lower entries.  It iterates from 0 and finds the next available key.
+'''
+
+
+def get_available_key(book_dict):
+    for possible_key in range(book_dict['First Name'][2].__len__()):
+        if possible_key not in book_dict['First Name'][2].keys():
+            return possible_key
+    return book_dict['First Name'][2].__len__()
 
 
 # I added an optional argument to this method now, so if you call the method and pass it a list (of keys)
@@ -296,3 +350,4 @@ show_contacts()
 # This is here to make sure the program closes when the user is good and ready
 # for it to close, dammit!
 # wait = raw_input("You've chosen to quit.  Bye!")
+
