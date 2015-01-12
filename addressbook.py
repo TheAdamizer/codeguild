@@ -67,51 +67,64 @@ def get_available_key(book_dict):
     return book_dict['First Name'][2].__len__()
 
 
+# This simple function acts as an alias to retrieve the key list.  Cause I'm lazy.
+def get_key_list(book_dict):
+    return book_dict['First Name'][2].keys()
+
+
 # I added an optional argument to this method now, so if you call the method and pass it a list (of keys)
-# it will now print the contacts with keys in that list.  Otherwise, it will print all the entries.
-def show_contacts(show_list=key_list):
-    for i in show_list:
-        show_contact(i)
+# it will now print the contacts with keys in that list. Otherwise, it will print all the entries.
+def show_contacts(book_dict, show_list='not a list'):
+    if isinstance(show_list, list):
+        for i in show_list:
+            show_contact(book_dict, i)
+    elif isinstance(show_list, str):
+        for i in get_key_list(book_dict):
+            show_contact(book_dict, i)
+    else:
+        print "I do not understand the input and I won't respond to it."
 
 
 # This method actually prints the contents of a contact entry.
-def show_contact(i):
-    print "This is key: %d" % i
-    print (first_name_dict[i])
-    print (last_name_dict[i])
-    print (phone_dict[i])
-    print (phone_2_dict[i])
-    print (email_dict[i])
-    print (address_dict[i])
-    print "--------------------"
-    print ""
+def show_contact(book_dict, i):
+    print "This entry is key: %d" % i
+    for column_name in book_dict.keys():
+        print "%s: %s" % (column_name, book_dict[column_name][2][i])
+    print "--------------------\n"
 
 
-# This method is called when the user wants to create a new entry.  It needs
-# to be passed a key at which the new entry needs to be created.  We will
-# pass it the global variable currentKey whenever we need a new entry created.
-# Notice this method calls the editContact method, which also needs a key
-# and is used to let the user modify the entry.  The rest of the addContact
-# method simply adds the new key to the keyList, iterates the currentKey
-# (so the key stays unique), and returns the currentKey.
-def add_contact(add_key):
-    edit_contact(add_key)
-    key_list.append(add_key)
+# This method is called when the user wants to create a new contact  It needs
+# to be passed the book_dict in which the new entry needs to be created.
+def add_contact(book_dict):
+    key_to_add = get_available_key(book_dict)
+    print "\nThis contact will have key number: %d\n" % key_to_add
+    print "Please enter the requested information about your new contact."
+    for column_name in book_dict.keys():
+        print "%s: " % column_name
+        user_input = raw_input("")
+        if book_dict[column_name][0] == 0:
+            while user_input == '':
+                print 'This value cannot be blank. Please reenter.'
+                print "%s: " % column_name
+                user_input = raw_input("")
+        book_dict[column_name][2][key_to_add] = user_input
+    return book_dict
 
 
 # This method is used to completely remove an entry from the the address book.
 # This is done by, first, popping the entries out of every storage dictionary,
-# by passing the key for the entry we'd like to remove.  Then, the key is removed from
-# the keyList.
-def delete_contact(delete_key):
-    first_name_dict.pop(delete_key)
-    last_name_dict.pop(delete_key)
-    phone_dict.pop(delete_key)
-    phone_2_dict.pop(delete_key)
-    email_dict.pop(delete_key)
-    address_dict.pop(delete_key)
-    key_list.remove(delete_key)
-    print "------------------------------------------------------"
+# by passing the key for the entry we'd like to remove.
+def delete_contact(book_dict, delete_key):
+    print "Contact has been marked for deletion!!!!!!"
+    show_contact(book_dict, delete_key)
+    user_input = raw_input("Type Y if you're sure you want to delete !!")
+    if user_input == 'Y':
+        for column_name in book_dict.keys():
+            book_dict[column_name][2].pop(delete_key)
+        return book_dict
+    else:
+        print "No changes made."
+        return book_dict
 
 
 # This method is used for editing the data in the storage dictionaries. It needs
