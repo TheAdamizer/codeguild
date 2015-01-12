@@ -128,68 +128,46 @@ def delete_contact(book_dict, delete_key):
 
 
 # This method is used for editing the data in the storage dictionaries. It needs
-# to be passed the key at which the entry is being edited/created (this method works for
-# both) It creates some
-# local variables, and initially makes them all blank.  Later on, the program asks the user
-# for an entry for each of these.  These raw_input requests all happen within while loops that
-# continue looping until their values are not empty (meaning the user put something in).  The
-# exception to this is the phone2 value, letting the user keep that blank if they would like.
-# After all the values (other than phone2) have non-blank values, it enters them into the
-# storage dictionaries, using the key that was passed into the method. This method doesn't
-# need to edit the keyList, because it only enters into the dictionaries, which could be used
-# for editing the entry in place as well.
-def edit_contact(edit_key):
-    first_name = ""
-    last_name = ""
-    phone = ""
-    email = ""
-    address = ""
-    while first_name == "":
-        first_name = raw_input("What is the first name of your contact? ")
-    while last_name == "":
-        last_name = raw_input("What is the last name of your contact? ")
-    while phone == "":
-        phone = raw_input("What is the phone of your contact? ")
-
-    # Notice phone2 is not contained within the while loop, so the program will accept
-    # a blank value.
-    phone2 = raw_input("What is the second phone number of your contact? ")
-    while email == "":
-        email = raw_input("What is the email of your contact? ")
-    while address == "":
-        address = raw_input("What is the address of your contact? ")
-
-    first_name_dict[edit_key] = first_name
-    last_name_dict[edit_key] = last_name
-    phone_dict[edit_key] = phone
-    email_dict[edit_key] = email
-    address_dict[edit_key] = address
-    phone_2_dict[edit_key] = phone2
-
-    print "---------------------------------"
+# to be passed the key at which the entry is being edited.
+# The program prints the current value at column_name for an entry, then asks the user for an entry.
+# If the user doesn't want to change that part of the contact, they can simply hit enter and it will remain unchanged.
+def edit_contact(book_dict, edit_key):
+    print "Key you have chosen to edit: %d" % edit_key
+    print "\nShowing current values, if you want to leave the entry, press enter.  Otherwise, the input will replace it"
+    for column_name in book_dict.keys():
+        print "%s: %s" % (column_name, book_dict[column_name][2][edit_key])
+        user_input = raw_input("")
+        if user_input != '':
+            book_dict[column_name][2][edit_key] = user_input
+            print "replaced with %s" % user_input
+        else:
+            print "nothing changed!"
+    print "Done editing\n...................................."
+    return book_dict
 
 
 # This method, when given a string, searches the entries in all the databases for that string.
 # It will return a list of all of the keys for entries that contain that string.
-def phrase_search(phrase):
+def phrase_search(book_dict, phrase):
     search_results = []
-    for i in key_list:
-        if first_name_dict[i].__contains__(phrase) or last_name_dict[i].__contains__(phrase) or \
-                phone_dict[i].__contains__(phrase) or email_dict[i].__contains__(phrase) or \
-                address_dict[i].__contains__(phrase) or phone_2_dict[i].__contains__(phrase):
-            search_results.append(i)
+    for i in get_key_list(book_dict):
+        for column_name in book_dict.keys():
+            if book_dict[column_name][2][i].__contains__(phrase):
+                search_results.append(i)
+                break
     return search_results
 
 
-# This method manages the user's search. It initially asks for a phrase and keeps searching
+# This method manages the user's search, given a book to search. It initially asks for a phrase and keeps searching
 # until the search yields results or the user decides to stop trying.
-def search():
+# noinspection PyTypeChecker
+def search(book_dict):
     search_phrase = raw_input("Enter a phrase to search. ")
     search_success = 0          # This variable is used to keep track of when the program should stop trying to search.
     while search_success == 0:                          # As long as no success is seen, the search continues...
-        results = phrase_search(search_phrase)   # Calling the phrase_search method defined above.
+        results = phrase_search(book_dict, search_phrase)   # Calling the phrase_search method defined above.
         if results:
-            show_contacts(results)
+            show_contacts(book_dict, results)
             search_success = 1
         else:
             user_choice = raw_input("No results... enter y to search again, and anything else otherwise. ")
@@ -199,6 +177,13 @@ def search():
                 search_success = 1    # Otherwise 1 is assigned to success and this ends the search loop.
 
 
+some_book = edit_contact(add_contact(add_contact(create_book())), int(raw_input("A key to edit, perchances?")))
+some_book = delete_contact(some_book, int(raw_input("A key to delete, M'sir?")))
+search(some_book)
+
+
+
+'''
 # This method is used to take one line, read from the storage file, and parse it into a list
 # of values for the dictionary.  It uses multiple try blocks to insure that the information is valid,
 # and will not write to the dictionaries if it is not.
@@ -364,3 +349,4 @@ show_contacts()
 # for it to close, dammit!
 # wait = raw_input("You've chosen to quit.  Bye!")
 
+'''
