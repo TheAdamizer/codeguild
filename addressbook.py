@@ -177,49 +177,52 @@ def search(book_dict):
                 search_success = 1    # Otherwise 1 is assigned to success and this ends the search loop.
 
 
-some_book = edit_contact(add_contact(add_contact(create_book())), int(raw_input("A key to edit, perchances?")))
-some_book = delete_contact(some_book, int(raw_input("A key to delete, M'sir?")))
-search(some_book)
-
-
-
-'''
-# This method is used to take one line, read from the storage file, and parse it into a list
+# This method is used to take one line, read from the storage file, and parses it into a list
 # of values for the dictionary.  It uses multiple try blocks to insure that the information is valid,
 # and will not write to the dictionaries if it is not.
-def read_line_to_dicts(line, key_so_far):
+def read_line_to_dicts(book_dict, column_list, line):
     items = line.split('|')
-    print "Opening line..."
     try:                        # Making sure the key is a valid integer.
         key = int(items[0])
     except ValueError:          # If not, return the key given and report the error.
         print "Not valid Key. Nothing imported."
-        return key_so_far
+        return book_dict
     except:
         print "Unexpected Error: ", sys.exc_info()[0]
         raise
     print "Valid key number %d" % key
-    try:                        # Making sure the item list is at least 6 long (contains all but a phone2)
-        address_dict[key] = items[5].rstrip('\n')
-        first_name_dict[key] = items[1]
-        last_name_dict[key] = items[2]
-        phone_dict[key] = items[3]
-        email_dict[key] = items[4]
+    try:                        # Making sure the item list is as long as the column_list's length.
+        last_term = line[column_list.__len__()-1]
+        term_to_read = 1
+        for column_name in column_list:
+            book_dict[column_name][2][key] = items[term_to_read].rstrip('\n')
+            term_to_read += 1
     except IndexError:          # If the line doesn't have enough parameters, report error. Nothing will be imported.
         print "Not a valid line: Not enough parameters/Not formatted correctly. Nothing imported."
-        return key_so_far
-    try:                        # If the last entry (for phone2) is empty....
-        phone_2_dict[key] = items[6].rstrip('\n')
-    except IndexError:          # Don't worry about it, and fill with a blank. Keep going.
-        phone_2_dict[key] = ''
-        pass
+        return book_dict
     except:
         print "Unexpected Error: ", sys.exc_info()[0]
         raise
     print "Line is a valid entry! Entry %d successfully imported" % key
-    key_list.append(key)        # Add the key to the key_list
-    new_current_key = key + 1   # Increment the key to make sure it stays unique.
-    return new_current_key
+    return book_dict
+
+
+# This method is used to read the first line of the file.  The first line is important because it defines
+# the structure of the address book.
+def read_first_line(first_line):
+    broken_line = first_line.split('|')
+    ordered_parameter_list = []
+    new_book_dict = dict()
+    try:
+        for i in range(broken_line.__len__()):
+            broken_column = broken_line[i].split(',')
+            new_parameter_list = [int(broken_column[0]), int(broken_column[1]), dict()]
+            ordered_parameter_list.append(broken_column[2].rstrip('\n'))
+            new_book_dict[broken_column[2].rstrip('\n')] = new_parameter_list
+        return [new_book_dict, ordered_parameter_list]
+    except IndexError:
+        print "File formatted incorrectly.  Creating blank database."
+        return new_book_dict
 
 
 # This method tries to open the given file, manages all exceptions, and parses
@@ -229,26 +232,42 @@ def read_line_to_dicts(line, key_so_far):
 # is done to be stored into the current_key variable.
 # noinspection PyUnusedLocal
 def read_lines_from_file(filename):
-    highest_key = 0
     try:
         file_to_open = open(filename, 'r')
         print "File %s successfully opened!" % filename
     except IOError:
+        fresh_book = create_book()
         print "No valid file! Nothing imported. Sad day..."
-        print "The current usable key after importing is %d." % highest_key
+        print "The current usable key after importing is %d." % get_available_key(new_book)
         wait = raw_input("Press enter to continue.")
-        return highest_key
+        return fresh_book
     except:
         print "Unexpected Error: ", sys.exc_info()[0]
         raise
+    current_line = 0
+    book_dict = {}
+    column_list = []
     for l in file_to_open:
-        highest_key = read_line_to_dicts(l, highest_key)
+        if current_line == 0:
+            book_dict_and_parameter_list = read_first_line(l)
+            book_dict = book_dict_and_parameter_list[0]
+            if book_dict.__len__() == 0:
+                break
+            column_list = book_dict_and_parameter_list[1]
+        else:
+            book_dict = read_line_to_dicts(book_dict, column_list, l)
+        current_line += 1
     file_to_open.close()
-    print "The current usable key after importing is %d." % highest_key
+    if book_dict.__len__() == 0:
+        book_dict = create_book()
+    print "The current usable key after importing is %d." % get_available_key(book_dict)
     wait = raw_input("Press enter to continue.")
-    return highest_key
+    return book_dict
 
+new_book = read_lines_from_file('book_file')
+search(new_book)
 
+'''
 # This function reads through the entire key list and writes all of the values associated
 # with that key into a line of a file that is defined in the argument.
 # The values are separated by a | character, and they are put in in an order that allows
