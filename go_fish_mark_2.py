@@ -2,9 +2,9 @@ __author__ = 'Adam Van Antwerp'
 
 
 """
-This version is meant to be an object-oriented approach to the classic
+This version is meant to be a some-what object-oriented approach to the classic
 card game 'Go-Fish'.  Decks, hands, players and the game itself will all be
-objects defined by a class.  The deck, hand and player objects will all be passed
+objects defined by a classes.  The deck, hand and player objects will all be passed
 into an instantiated game object that will handle all of the operation of the game.
 """
 
@@ -170,7 +170,15 @@ class Player:
         self.score += self.hand.remove_pairs()
 
 
+# TODO: Refactor
+# TODO: Reduce debug output
+# TODO: Put pauses and clear screens in the console output
+# TODO: Enable a custom keyword entry for hand_size during the game object instantiation
+# This class creates a game object, and controls the game flow of the go-fish game.
+# Most of the actual control flow happens in give_turn, fish_from_deck, determine winner, and
+# get_players.
 class Game:
+    # Creates the local variables we need to keep track of the game state.
     def __init__(self):
         self.turn_number = 0
         self.player_list = []
@@ -178,33 +186,31 @@ class Game:
         self.deck = Deck()
         self.hand_size = 5
 
+    # Makes a player list based on user input.
     def get_players(self):
         number_of_players = 0
-        while number_of_players < 2:
+        while number_of_players < 2:  # Keeps trying until the input is valid
             try:
                 number_of_players = int(raw_input("Please input the number of desired players: "))
-            except:
+            except ValueError:        # If the user puts in something that can't be converted into an int...
                 print "Invalid response."
                 number_of_players = 0
         for l in range(number_of_players):
             print "Player %d..." % (l + 1)
             player_name = raw_input("Please enter your name: ")
-            if player_name == '':
+            if player_name == '':    # It won't let any names be blank
                 player_name = "Player " + str(l + 1)
                 print "Defaulting to %s" % player_name
-            self.player_list.append(Player(player_name))
+            self.player_list.append(Player(player_name))    # Creates the player objects
 
-    # def deal_hands(self):
-    #     for player in self.player_list:
-    #         for i in range(self.hand_size):
-    #             player.give_card(self.deck.deal_card())
-    #         print "%s, hand: %s" % (str(player), str(player.hand))
-    #     print self.deck
-
+    # Makes sure a player has their hand full (whatever the hand_size int is set to)
     def top_off(self, player_to_top_off):
+        # Won't top off if the deck is empty, for obvious reasons.
         while len(self.deck) > 0 and len(player_to_top_off.hand) < self.hand_size:
-            player_to_top_off.give_card(self.deck.deal_card())
+            player_to_top_off.give_card(self.deck.deal_card())  # Uses the player's give_card and deck's deal_cards
 
+    # TODO: Make this 'empty-deck-proof', so it can be used instead of top_off inside a loop TEST THIS
+    # Makes sure everyone has a hand at hand_size, and also takes care of any pairs they may get as that happens.
     def resolve_initial_pairs(self):
         for player in self.player_list:
             player.remove_pairs()
@@ -212,146 +218,105 @@ class Game:
                 self.top_off(player)
                 player.remove_pairs()
 
+    # TODO: Needs major refactoring
+    # TODO: Reduce 'empty-deck-proof' redundancies
+    # Manages the 'go-fish' mechanic, whereby the player has not gotten the card they want from another player, so
+    # instead are recieving a card from the deck.  They should get to play again should they receive that very card
+    # from the deck.
     def fish_from_deck(self, player_fishing, rank_fishing_for):
         print "Go fish!"
-        pulled_card = self.deck.deal_card()
-        player_fishing.give_card(pulled_card)
-        success = 0
-        if pulled_card == None:
+        pulled_card = self.deck.deal_card()        # Pulls a 'fished' card
+        player_fishing.give_card(pulled_card)      # Gives the player that card cause it's theirs
+        success = 0                                # We don't know if it was the right card yet...
+        if pulled_card is None:                    # Deal with an empty card cause the deck is empty
             print "No cards left."
-        elif rank_fishing_for == pulled_card[1]:
+        elif rank_fishing_for == pulled_card[1]:   # If they got the right card
             print "You got it!!"
-            success = 1
-            player_fishing.remove_pairs()
-            while len(self.deck) > 0 and len(player_fishing.hand) < self.hand_size:
-                self.top_off(player_fishing)
-                player_fishing.remove_pairs()
-            print "This is your score: %d" % int(player_fishing)
+            success = 1                            # Lets us know later on to repeat their turn
+            player_fishing.remove_pairs()          # Take pairs out and increment score
+            while len(self.deck) > 0 and len(player_fishing.hand) < self.hand_size:    # Only top off if deck isn't
+                self.top_off(player_fishing)                                           # empty and their hand is less
+                player_fishing.remove_pairs()                                          # than hand_size
+            print "This is your score: %d" % int(player_fishing)   # Show them their score
             return success
-        print "Didn't get the card you wanted..., turn over"
-        player_fishing.remove_pairs()
-        while len(self.deck) > 0 and len(player_fishing.hand) < self.hand_size:
+        print "Didn't get the card you wanted... turn over"
+        player_fishing.remove_pairs()                              # Cleans up their pairs
+        while len(self.deck) > 0 and len(player_fishing.hand) < self.hand_size:  # TODO: Reduce redundancy (refactor)
                 self.top_off(player_fishing)
                 player_fishing.remove_pairs()
         return success
 
-
+    # Most of the game process happens here.  This manages the player's overall turn.  It gets input from the user
+    # as far as how to proceed with their turn, then manages the trade of the card between the deck and the two players.
+    # TODO: Refactoring
+    # TODO: Reduce Redundancy
     def give_turn(self, player_having_turn):
         print str(player_having_turn) + ".  It's your turn."
-        player_to_pick = -1
+        player_to_pick = -1                     # Opponents is a list comprehension returning the opponents of a player
         opponents = [player_.player_name for player_ in self.player_list if player_ != player_having_turn]
         print "Your valid opponents are: %s" % str(opponents)
-        while player_to_pick not in opponents:
+        while player_to_pick not in opponents:  # If the user doesn't type in an opponent, asks for more input
             player_to_pick = raw_input("Please put in someone to ask a card from: ")
-        opponent = None
+        opponent = None                         # Picks the user that has the same name as the 'valid' input above
         for player_ in [player_ for player_ in self.player_list if str(player_) == player_to_pick]:
             opponent = player_
         rank_to_request = ''
         print "Here is your hand: %s" % str(player_having_turn.hand)
+        # This while loop keeps going as long as the user puts in a rank that's not in their hand
         while rank_to_request not in \
                 [rank_ for rank_ in self.deck.ranks if player_having_turn.hand.check_for_rank(rank_)]:
             rank_to_request = raw_input("What's the card that you want?")
-        result = opponent.ask_for_card(rank_to_request)
-        go_again = 0
-        if result != None:
-            player_having_turn.give_card(result)
+        result = opponent.ask_for_card(rank_to_request)  # This will return None if the opponent didn't have the rank
+        go_again = 0                                     # By default the user doesn't get to go again
+        if result is not None:                           # If the user got a card from the opponent
+            player_having_turn.give_card(result)         # Give them the card and run remove_pairs
             player_having_turn.remove_pairs()
-            while len(self.deck) != 0 and len(player_having_turn.hand) < 5:
+            while len(self.deck) != 0 and len(player_having_turn.hand) < 5:  # TODO: Reduce redundancy
                 self.top_off(player_having_turn)
                 player_having_turn.remove_pairs()
-            print ("Nice one! You got %s's card. You get to go again!") % str(opponent)
-            print ("Here is your score: %d") % int(player_having_turn)
+            print "Nice one! You got %s's card. You get to go again!" % str(opponent)
+            print "Here is your score: %d" % int(player_having_turn)
             go_again = 1
-        elif self.fish_from_deck(player_having_turn, rank_to_request):
+        elif self.fish_from_deck(player_having_turn, rank_to_request):       # If the user successfully 'fishes'
             go_again = 1
-        if len(self.deck) == 0:
-            print "Deck is empty!"
+        if len(player_having_turn.hand) == 0:            # Turn ends if their hand ends up empty (deck is empty)
+            print "Hand is empty!"
             go_again = 0
-        if go_again:
+        if go_again:                                     # Recursively calls this function if they get another turn
             self.give_turn(player_having_turn)
-        self.resolve_initial_pairs()
+        self.resolve_initial_pairs()                     # Cleans up the pairs of all players and tops off their hands
 
+    # This function manages the victory and outputs the results to the screen.  Allows for ties.
     def determine_winner(self):
-        score_list = [player_.score for player_ in self.player_list]
-        highest_score = max(score_list)
-        winners = []
+        score_list = [player_.score for player_ in self.player_list]   # Creates a list of all the player's scores
+        highest_score = max(score_list)                                # Gets the top score, even if it's a tie
+        winners = []                                                   # Winner's list allows for multiple entries
         for player__ in self.player_list:
             if player__.score == highest_score:
-                winners.append(player__)
-        if len(winners) == 1:
+                winners.append(player__)                               # Adds players if they're score matches the top
+        if len(winners) == 1:                                          # If there is only one winner....
             print "%s wins with a score of %d!" % (str(winners[0]), highest_score)
-        else:
+        else:                                                          # Else, print all the winners
             print "There was a tie.  Winners are: %s" % str(winners)
             print "The winning score is: %d" % highest_score
 
+    # This function basically runs the whole game, though most of the actual turn logic is done in other functions.
+    def play(self):
+        self.get_players()                          # Call get_players to make a player list
+        game.resolve_initial_pairs()
+        game_over = 0                               # Set end condition to false by default
+        while not game_over:                        # Loop while game is still 'on'
+            for player__ in self.player_list:       # Loop through the player list
+                self.give_turn(player__)            # Give the player a turn, and if the hand and deck are empty...
+                if len(self.deck) == 0 and 0 in [len(__player.hand) for __player in self.player_list]:
+                    game_over = 1                   # Game over...
+                    break                           # Break to exit the player list loop
+        print "Game's over!"
+        for player__ in self.player_list:           # Loops through player list to print final details...
+            print "%s, your score is %d and you had a final hand of: %s" %\
+                  (str(player__), int(player__), str(player__.hand))
+        self.determine_winner()                     # Calls determine_winner to output winner and whatnot.
+        print "Thank you for playing."
 
-
-
-
-
-
-
-game = Game()
-game.get_players()
-print game.player_list
-game.resolve_initial_pairs()
-game_over = 0
-while not game_over:
-    for player in game.player_list:
-        print str(player)
-        print int(player)
-        print str(player.hand)
-        game.give_turn(player)
-        print str(player.hand)
-        print "^Here is your hand at the end of the turn^"
-        if len(game.deck) == 0 and 0 in [len(player_.hand) for player_ in game.player_list]:
-            game_over = 1
-            break
-print "Game's over!"
-print "Final Deck (should be empty): %s" % str(game.deck)
-for player in game.player_list:
-    print "%s, your score is %d and final hand of: %s" % (str(player), int(player), str(player.hand))
-game.determine_winner()
-print "Thank you for playing"
-
-
-# wait = raw_input("press enter to continue")
-# test_deck = Deck()
-# hand_object_from_deal = Hand()
-# # test_deck.deal_card(5)
-# i = 0
-# while i < 5:
-#     print hand_object_from_deal.hand
-#     hand_object_from_deal.add_card(test_deck.deal_card())
-#     i += 1
-# print hand_object_from_deal.hand
-# hand_object_from_deal.add_card(('Diamond', '3'))
-# print hand_object_from_deal.hand
-# print hand_object_from_deal.check_for_rank('3')
-# print hand_object_from_deal.check_for_rank('K')
-# # taken_card = hand_object_from_deal.take_card('3')
-# # print taken_card
-# print hand_object_from_deal.hand
-# another_hand = Hand()
-# another_hand.add_card(hand_object_from_deal.take_card('3'))
-# print another_hand.hand
-# wait = raw_input("Waiting again")
-# another_hand.add_card(('Spade', '3'))
-# another_hand.add_card(('Diamond', '6'))
-# score_change = another_hand.remove_pairs()
-# print score_change
-# print another_hand.hand
-# print test_deck
-# print another_hand
-# print len(test_deck)
-# print len(another_hand)
-# test_player = Player('Adam')
-# test_player.increase_score(2)
-# print test_player
-# print int(test_player)
-# for card in hand_object_from_deal.hand:
-#     test_player.give_card(card)
-# print test_player.hand
-# test_player.remove_pairs()
-# print int(test_player)
-# print test_player.hand
+game = Game()            # Creates the game object and plays it with the play method.
+game.play()
