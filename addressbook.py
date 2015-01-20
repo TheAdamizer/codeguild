@@ -36,7 +36,15 @@ object has been expanded to provide some insight into it's structure and how it 
 later on in the address book program.
 '''
 
+# TODO: Make default column list order
+# TODO: Allow user to add new column types
+# TODO: Allow user to remove user-made column types
+# TODO: Better output
 
+DEFAULT_BOOKFILE = 'book_file'
+
+
+# This function creates a new book should the file be unavailable when the program starts
 def create_book():
     first_name_dict = {}
     last_name_dict = {}
@@ -53,13 +61,9 @@ def create_book():
     return book_dict
 
 
-'''
-When adding a new entry into the list, the program needs a way to determine the next available key
-to use for an entry.  Since the program supports deleting entries, those keys open up, and for the sake of
-tidiness, this method will prefer lower entries.  It iterates from 0 and finds the next available key.
-'''
-
-
+# When adding a new entry into the list, the program needs a way to determine the next available key
+# to use for an entry.  Since the program supports deleting entries, those keys open up, and for the sake of
+# tidiness, this method will prefer lower entries.  It iterates from 0 and finds the next available key.
 def get_available_key(book_dict):
     for possible_key in range(book_dict['First Name'][2].__len__()):
         if possible_key not in book_dict['First Name'][2].keys():
@@ -67,6 +71,7 @@ def get_available_key(book_dict):
     return book_dict['First Name'][2].__len__()
 
 
+# TODO: Implement this where needed
 # This simple function acts as an alias to retrieve the key list.  Cause I'm lazy.
 def get_key_list(book_dict):
     return book_dict['First Name'][2].keys()
@@ -192,7 +197,7 @@ def read_line_to_dicts(book_dict, column_list, line):
         raise
     print "Valid key number %d" % key
     try:                        # Making sure the item list is as long as the column_list's length.
-        last_term = line[column_list.__len__()-1]
+        test_line = line[column_list.__len__()-1]
         term_to_read = 1
         for column_name in column_list:
             book_dict[column_name][2][key] = items[term_to_read].rstrip('\n')
@@ -230,142 +235,130 @@ def read_first_line(first_line):
 # closes the file when it is done, and it keeps track of the next usable key, by
 # setting it to 1 plus the highest key read from a file. It returns this key when it
 # is done to be stored into the current_key variable.
-# noinspection PyUnusedLocal
 def read_lines_from_file(filename):
     try:
-        file_to_open = open(filename, 'r')
+        file_to_open = open(filename, 'r')   # Opens the file
         print "File %s successfully opened!" % filename
-    except IOError:
+    except IOError:                          # If the filename isn't there to open...
         fresh_book = create_book()
         print "No valid file! Nothing imported. Sad day..."
-        print "The current usable key after importing is %d." % get_available_key(new_book)
-        wait = raw_input("Press enter to continue.")
+        raw_input("Press enter to continue.")
         return fresh_book
-    except:
+    except:                                  # Handling unknown exceptions
         print "Unexpected Error: ", sys.exc_info()[0]
         raise
     current_line = 0
     book_dict = {}
     column_list = []
     for l in file_to_open:
-        if current_line == 0:
-            book_dict_and_parameter_list = read_first_line(l)
+        if current_line == 0:   # If the current line of the file is the first one, put the needed first line instead
+            book_dict_and_parameter_list = read_first_line(l)  # This returns a column list and the book_dict structure
             book_dict = book_dict_and_parameter_list[0]
-            if book_dict.__len__() == 0:
+            if book_dict.__len__() == 0:   # Escape if the book_dict is empty
                 break
             column_list = book_dict_and_parameter_list[1]
         else:
-            book_dict = read_line_to_dicts(book_dict, column_list, l)
-        current_line += 1
+            book_dict = read_line_to_dicts(book_dict, column_list, l)  # If it isn't the first line, just read the line
+        current_line += 1                                              # normally
     file_to_open.close()
-    if book_dict.__len__() == 0:
-        book_dict = create_book()
+    if book_dict.__len__() == 0:     # If the book doesn't have any elements...
+        book_dict = create_book()    # Make one.
     print "The current usable key after importing is %d." % get_available_key(book_dict)
-    wait = raw_input("Press enter to continue.")
+    raw_input("Press enter to continue.")
     return book_dict
 
-new_book = read_lines_from_file('book_file')
-search(new_book)
 
-'''
+# This function makes a first line to be written into the file.  The first line is different than the others, because
+# it doesn't contain entry details.  It provides the program with the structure of the address book, meaning all of the
+# column names, whether they are optional, and whether they were originally created by the user.
+def make_first_line(book_dict):
+    first_line = ''                      # Start with an empty string
+    ordered_key_list = book_dict.keys()  # We need a common ordered list of the entries to ensure it reads consistently.
+    for key in ordered_key_list:         # Builds the line column type by column type
+        first_line = first_line + str(book_dict[key][0]) + ',' + str(book_dict[key][1]) + ',' + key + '|'
+    first_line = first_line.rstrip('|')  # Takes the last | character off
+    return [first_line, ordered_key_list]
+
+
 # This function reads through the entire key list and writes all of the values associated
 # with that key into a line of a file that is defined in the argument.
 # The values are separated by a | character, and they are put in in an order that allows
 # us to reliably retrieve them the next time the program is run.
-def write_dicts_to_file(filename):
+def write_dicts_to_file(book_dict, filename):
+    first_line_results = make_first_line(book_dict)
+    first_line = first_line_results[0]
+    column_list = first_line_results[1]
+    whole_thing = first_line + '\n'                  # whole_thing is the string for the entire file before it's written
+    for key in book_dict['First Name'][2].keys():    # After the first line is added, every entry is added from the book
+        new_line = str(key) + '|'
+        for column in column_list:
+            new_line = new_line + book_dict[column][2][key] + '|'
+        new_line = new_line.rstrip('|') + '\n'       # Strip the last | before adding a newline character
+        whole_thing += new_line
+    whole_thing = whole_thing.rstrip('\n')           # Strips the last newline before writing it
     file_to_write = open(filename, 'w')
-    for key in key_list:
-        file_to_write.write(str(key) + '|')
-        file_to_write.write(first_name_dict[key] + '|')
-        file_to_write.write(last_name_dict[key] + '|')
-        file_to_write.write(phone_dict[key] + '|')
-        file_to_write.write(email_dict[key] + '|')
-        file_to_write.write(address_dict[key] + '|')
-        file_to_write.write(phone_2_dict[key] + '|\n')
+    file_to_write.write(whole_thing)                 # Opens, writes, and closes.
     file_to_write.close()
 
 
-current_key = read_lines_from_file('book_file')
-print "\nprint Hey there, this is an address book!\n\n"
+# This function is used to manage the user's experience and provide them with a way to use the address book.
+# It will automatically open it up from file, allow the user to do whatever they like to it, and give them the option
+# to quit as well when they are done.  When they choose the quit option, the address book saves to the DEFAULT_BOOKFILE.
+def run_book():
+    print "\nHey there, this is an address book!\n\n"
+    address_book = read_lines_from_file(DEFAULT_BOOKFILE)
+    # This loops forever until a break is encountered (meaning the user has chosen to quit with option 6)
+    # This way the user will always be presented with the menu after the program is done completing a request.
+    while True:
+        # This is for interfacing with the human allowing them to choose which of the program's
+        # features they would like to use.  A menu is printed and the user's choice is stored into
+        # the variable choice, presumably an integer, though no error checking is done.
+        print "What do you want to do?"
+        print "1 = Show contacts"
+        print "2 = Add Contact"
+        print "3 = Edit Contact"
+        print "4 = Delete Contact"
+        print "5 = Search for contact"
+        print "6 = Quit"
+        print "--------------------------------"
+        choice = raw_input("Pick one! ")
+        print "--------------------------------"
+        print ""
 
+        # This is the decision tree we use to comply with the user's wishes.  The user has chosen what the
+        # would like to do, so we uses a series of ifs and elifs to perform those commands that the user has
+        # chosen.  If the user chooses to add a contact, the program increments the global variable currentKey,
+        # to make sure the currentKey stays unique no matter what.  If the user doesn't choose a given choice,
+        # (not 1 through 5), then the program taunts them and repeats the menu.
+        if choice == '1':
+            show_contacts(address_book)
+        elif choice == '2':
+            address_book = add_contact(address_book)
+        elif choice == '3':
+            success = 0			 # Here I am making a sub-loop that continues asking the user for a key to edit
+            while success == 0:  # Until the user gives a valid key that is used in the first_name_dict
+                key_to_edit = int(raw_input("Which key do you want to edit?  "))
+                if key_to_edit in address_book['First Name'][2].keys():
+                    address_book = edit_contact(address_book, key_to_edit)
+                    success = 1
+                else:			 # Otherwise it prints an error and repeats the loop.
+                    print "This isn't a valid key, m8.  Please try again."
+        elif choice == '4':
+            success = 0
+            while success == 0:	 # Using the same technique as above
+                key_to_delete = int(raw_input("Which key do you want to delete?  "))
+                if key_to_delete in address_book['First Name'][2].keys():
+                    address_book = delete_contact(address_book, key_to_delete)
+                    success = 1
+                else:
+                    print "This isn't a valid key, m8.  Please try again."
 
-# This loops forever until a break is encountered (meaning the user has chosen to quit with option 6)
-# This way the user will always be presented with the menu after the program is done completing a request.
-while True:
-    # This is for interfacing with the hooman allowing them to choose which of the program's
-    # features they would like to use.  A menu is printed and the user's choice is stored into
-    # the variable choice, presumably an integer, though no error checking is done.
-    print "What do you want to do?"
-    print "1 = Show contacts"
-    print "2 = Add Contact"
-    print "3 = Edit Contact"
-    print "4 = Delete Contact"
-    print "5 = Search for contact"
-    print "6 = Quit"
-    print "--------------------------------"
-    choice = raw_input("Pick one, dummy!  ")
-    print "--------------------------------"
-    print ""
+        elif choice == '5':
+            search(address_book)
+        elif choice == '6':      # We need to make sure the file saves when the user exits the program.
+            write_dicts_to_file(address_book, DEFAULT_BOOKFILE)
+            break
+        else:
+            print "You messed, dude.  Try again (at life).\n"
 
-    # This is the decision tree we use to comply with the user's wishes.  The user has chosen what the
-    # would like to do, so we uses a series of ifs and elifs to perform those commands that the user has
-    # chosen.  If the user chooses to add a contact, the program increments the global variable currentKey,
-    # to make sure the currentKey stays unique no matter what.  If the user doesn't choose a given choice,
-    # (not 1 through 5), then the program taunts them and repeats the menu.
-    if choice == '1':
-        show_contacts()
-    elif choice == '2':
-        add_contact(current_key)
-        current_key += 1
-    elif choice == '3':
-        success = 0			 # Here I am making a sub-loop that continues asking the user for a key to edit
-        while success == 0:  # Until the user gives a valid key that is used in the first_name_dict
-            key_to_edit = int(raw_input("Which key do you want to edit?  "))
-            if key_to_edit in first_name_dict:
-                edit_contact(key_to_edit)
-                success = 1
-            else:			 # Otherwise it prints an error and repeats the loop.
-                print "This isn't a valid key, m8.  Please try again."
-    elif choice == '4':
-        success = 0
-        while success == 0:	 # Using the same technique as above
-            key_to_delete = int(raw_input("Which key do you want to delete?  "))
-            if key_to_delete in first_name_dict:
-                delete_contact(key_to_delete)
-                success = 1
-            else:
-                print "This isn't a valid key, m8.  Please try again."
-        
-    elif choice == '5':
-        search()
-    elif choice == '6':      # We need to make sure the file saves when the user exits the program.
-        write_dicts_to_file('book_file')
-        break
-    else:
-        print "You messed, dude.  Try again (at life).\n"
-
-
-# This is commented out code that is used for testing the functionality of the program.
-# The program currently lacks any way for the user to choose how it functions, so this bit
-# can be uncommented to ensure that the methods are working so far.
-"""  #This is for testing stuff!!!
-show_contacts()
-current_key = add_contact(currentKey)
-current_key = add_contact(currentKey)
-show_contacts()
-edit_contact(1)
-show_contacts()
-delete_contact(1)
-show_contacts()
-"""
-
-
-# This is printing the choice the user made at the start of the program, though we're
-# not actually using it for anything yet, it is just being printed for debug purposes.
-# print choice
-
-# This is here to make sure the program closes when the user is good and ready
-# for it to close, dammit!
-# wait = raw_input("You've chosen to quit.  Bye!")
-
-'''
+run_book()
